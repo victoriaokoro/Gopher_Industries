@@ -1,4 +1,4 @@
-using foodremedy.api.Models;
+using foodremedy.api.Models.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace foodremedy.api.Controllers;
@@ -7,22 +7,20 @@ namespace foodremedy.api.Controllers;
 [Route("[controller]")]
 [Produces("application/json")]
 [ProducesResponseType(StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 public class IngredientsController : ControllerBase
 {
     [HttpGet]
-    public async Task<PaginatedResult<IngredientSummary>> GetIngredientsAsync([FromQuery] int? skip, [FromQuery] int? take)
+    public Task<PaginatedResult<IngredientSummary>> GetIngredientsAsync([FromQuery] int? skip, [FromQuery] int? take)
     {
-        return new PaginatedResult<IngredientSummary>(0, 0, new List<IngredientSummary>());
+        return Task.FromResult(new PaginatedResult<IngredientSummary>(0, 0, new List<IngredientSummary>()));
     }
 
     [HttpGet("{ingredientId}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<Ingredient> GetIngredient([FromRoute] string ingredientId)
+    public Task<Ingredient> GetIngredient([FromRoute] string ingredientId)
     {
-        return new Ingredient
-        {
-            Id = ingredientId
-        };
+        return Task.FromResult(new Ingredient(ingredientId, null!,null!));
     }
 }
