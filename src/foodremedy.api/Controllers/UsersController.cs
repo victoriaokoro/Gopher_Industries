@@ -11,6 +11,7 @@ namespace foodremedy.api.Controllers;
 [Route("[controller]")]
 [Produces("application/json")]
 [ProducesResponseType(StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
 [ProducesResponseType(StatusCodes.Status409Conflict)]
 [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 public class UsersController : ControllerBase
@@ -26,12 +27,12 @@ public class UsersController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUser registerUser)
     {
-        User? existingUser = await _userRepository.GetUserByEmailAsync(registerUser.Email);
+        User? existingUser = await _userRepository.GetByEmailAsync(registerUser.Email);
 
         if (existingUser != null)
             return Conflict();
 
-        _userRepository.AddUser(registerUser.ToDbUser());
+        _userRepository.Add(registerUser.ToDbModel());
         await _userRepository.SaveChangesAsync();
 
         return Ok();

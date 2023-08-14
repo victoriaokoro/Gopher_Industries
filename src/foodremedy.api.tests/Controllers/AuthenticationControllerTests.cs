@@ -37,9 +37,9 @@ public class AuthenticationControllerTests
             ControllerContext = GetFakeContext(new[] { new Claim(JwtRegisteredClaimNames.Sub, _user.Id.ToString()) })
         };
 
-        _userRepository.Setup(p => p.GetUserByEmailAsync(_loginRequest.Email))
+        _userRepository.Setup(p => p.GetByEmailAsync(_loginRequest.Email))
             .ReturnsAsync(_user);
-        _userRepository.Setup(p => p.GetUserByIdAsync(_user.Id.ToString()))
+        _userRepository.Setup(p => p.GetByIdAsync(_user.Id.ToString()))
             .ReturnsAsync(_user);
         _authenticationProvider.Setup(p => p.UserCanLogin(_user, _loginRequest.Password))
             .Returns(true);
@@ -68,7 +68,7 @@ public class AuthenticationControllerTests
     [Fact]
     public async Task AttemptLogin_should_return_unauthorized_if_user_not_found()
     {
-        _userRepository.Setup(p => p.GetUserByEmailAsync(_loginRequest.Email))
+        _userRepository.Setup(p => p.GetByEmailAsync(_loginRequest.Email))
             .ReturnsAsync(null as User);
 
         ActionResult<AccessTokenCreated> response = await _sut.AttemptLogin(_loginRequest);
@@ -81,7 +81,7 @@ public class AuthenticationControllerTests
     {
         var testUser = new User("", "", "");
 
-        _userRepository.Setup(p => p.GetUserByEmailAsync(_loginRequest.Email))
+        _userRepository.Setup(p => p.GetByEmailAsync(_loginRequest.Email))
             .ReturnsAsync(testUser);
         _authenticationProvider.Setup(p => p.UserCanLogin(testUser, _loginRequest.Password))
             .Returns(false);
@@ -134,7 +134,7 @@ public class AuthenticationControllerTests
     [Fact]
     public async Task RefreshAccessToken_should_return_unauthorized_if_user_not_found()
     {
-        _userRepository.Setup(p => p.GetUserByIdAsync(_user.Id.ToString()))
+        _userRepository.Setup(p => p.GetByIdAsync(_user.Id.ToString()))
             .ReturnsAsync(null as User);
 
         ActionResult<AccessTokenCreated> result = await _sut.RefreshAccessToken(new RefreshAccessToken(""));

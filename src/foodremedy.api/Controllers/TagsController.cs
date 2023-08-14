@@ -2,14 +2,15 @@
 using foodremedy.api.Models.Requests;
 using foodremedy.api.Models.Responses;
 using foodremedy.api.Repositories;
+using foodremedy.database.Models;
 using Microsoft.AspNetCore.Mvc;
+using Tag = foodremedy.api.Models.Responses.Tag;
 
 namespace foodremedy.api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 [Produces("application/json")]
-[ProducesResponseType(StatusCodes.Status200OK)]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 public class TagsController : ControllerBase
@@ -22,19 +23,21 @@ public class TagsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Tag>>> GetAll()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PaginatedResponse<Tag>>> Get([FromQuery] PaginationRequest paginationRequest)
     {
-        List<database.Models.Tag> result = await _tagRepository.GetAllAsync();
-        return Ok(result.Select(p => p.ToResponseModel()).ToList());
+        PaginatedResult<database.Models.Tag> results = await _tagRepository.GetAsync(paginationRequest.Skip, paginationRequest.Take);
+        return Ok(results.ToResponseModel(p => p.ToResponseModel()));
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Tag>> CreateTag([FromBody] CreateTag createTag)
     {
-        _tagRepository.Add(createTag.ToDbTag());
+        database.Models.Tag result = _tagRepository.Add(createTag.ToDbModel());
         await _tagRepository.SaveChangesAsync();
 
-        return Ok();
+        return Created($"/tags/{result.ToResponseModel().Id}", result.ToResponseModel());
     }
 }

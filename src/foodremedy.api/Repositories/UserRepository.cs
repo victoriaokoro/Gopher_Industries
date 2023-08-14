@@ -6,10 +6,10 @@ namespace foodremedy.api.Repositories;
 
 public interface IUserRepository
 {
-    Task<User?> GetUserByEmailAsync(string email);
-    User AddUser(User user);
+    Task<User?> GetByEmailAsync(string email);
+    User Add(User user);
     Task SaveChangesAsync();
-    Task<User?> GetUserByIdAsync(string userId);
+    Task<User?> GetByIdAsync(string userId);
 }
 
 public class UserRepository : IUserRepository
@@ -21,12 +21,12 @@ public class UserRepository : IUserRepository
         _dbContext = dbContext;
     }
 
-    public async Task<User?> GetUserByEmailAsync(string email)
+    public async Task<User?> GetByEmailAsync(string email)
     {
         return await _dbContext.Users.SingleOrDefaultAsync(p => p.Email.Equals(email));
     }
 
-    public User AddUser(User user)
+    public User Add(User user)
     {
         return _dbContext.Users.Add(user).Entity;
     }
@@ -36,7 +36,7 @@ public class UserRepository : IUserRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<User?> GetUserByIdAsync(string userId)
+    public async Task<User?> GetByIdAsync(string userId)
     {
         if (!Guid.TryParse(userId, out Guid id))
             return null;

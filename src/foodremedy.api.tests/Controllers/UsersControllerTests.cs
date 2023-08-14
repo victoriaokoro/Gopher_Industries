@@ -30,7 +30,7 @@ public class UsersControllerTests
     public async Task RegisterUser_should_respond_conflict_if_user_with_email_exists()
     {
         var user = new User("testEmail", "", "");
-        _userRepository.Setup(p => p.GetUserByEmailAsync(user.Email)).ReturnsAsync(user);
+        _userRepository.Setup(p => p.GetByEmailAsync(user.Email)).ReturnsAsync(user);
 
         IActionResult response = await _sut.RegisterUser(new RegisterUser(user.Email, ""));
 
@@ -43,7 +43,7 @@ public class UsersControllerTests
         var request = new RegisterUser("someEmail", "somePassword");
         User? userCallback = null;
         _userRepository
-            .Setup(p => p.AddUser(It.Is<User>(q => q.Email.Equals(request.Email))))
+            .Setup(p => p.Add(It.Is<User>(q => q.Email.Equals(request.Email))))
             .Callback<User>(p => userCallback = p);
 
         await _sut.RegisterUser(request);

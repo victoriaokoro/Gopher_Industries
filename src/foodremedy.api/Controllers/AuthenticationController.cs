@@ -31,7 +31,7 @@ public class AuthenticationController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AccessTokenCreated>> AttemptLogin([FromBody] AttemptLogin attemptLogin)
     {
-        User? user = await _userRepository.GetUserByEmailAsync(attemptLogin.Email);
+        User? user = await _userRepository.GetByEmailAsync(attemptLogin.Email);
 
         if (user == null || !_authenticationProvider.UserCanLogin(user, attemptLogin.Password))
             return Unauthorized();
@@ -55,7 +55,7 @@ public class AuthenticationController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        User? user = await _userRepository.GetUserByIdAsync(userId.Value);
+        User? user = await _userRepository.GetByIdAsync(userId.Value);
 
         if (user == null ||
             !await _authenticationProvider.RefreshTokenIsValidAsync(user, refreshAccessToken.RefreshToken))

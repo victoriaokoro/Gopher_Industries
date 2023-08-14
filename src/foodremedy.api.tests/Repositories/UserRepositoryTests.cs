@@ -14,10 +14,10 @@ public class UserRepositoryTests : DatabaseIntegrationTestFixture
             async sut =>
             {
                 var user = new User("testEmail", "testPassword", "testSalt");
-                sut.AddUser(user);
+                sut.Add(user);
                 await sut.SaveChangesAsync();
 
-                User? result = await sut.GetUserByEmailAsync(user.Email);
+                User? result = await sut.GetByEmailAsync(user.Email);
 
                 result.Should().NotBeNull();
                 result!.Email.Should().Be(user.Email);
@@ -35,10 +35,10 @@ public class UserRepositoryTests : DatabaseIntegrationTestFixture
             {
                 var user = new User("testEmail", "testPassword", "testSalt");
                 
-                sut.AddUser(user);
+                sut.Add(user);
                 await sut.SaveChangesAsync();
 
-                var result = await sut.GetUserByEmailAsync(user.Email);
+                var result = await sut.GetByEmailAsync(user.Email);
 
                 result.Should().NotBeNull();
                 result!.Email.Should().Be(user.Email);
@@ -54,7 +54,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestFixture
         await RunInScopeAsync(context => new UserRepository(context),
             async sut =>
             {
-                var result = await sut.GetUserByEmailAsync("testEmail");
+                var result = await sut.GetByEmailAsync("testEmail");
 
                 result.Should().BeNull();
             });
@@ -68,10 +68,10 @@ public class UserRepositoryTests : DatabaseIntegrationTestFixture
             {
                 var user = new User("testEmail", "testPassword", "testSalt");
                 
-                sut.AddUser(user);
+                sut.Add(user);
                 await sut.SaveChangesAsync();
 
-                var result = await sut.GetUserByIdAsync(user.Id.ToString());
+                var result = await sut.GetByIdAsync(user.Id.ToString());
 
                 result.Should().NotBeNull();
                 result!.Email.Should().Be(user.Email);
@@ -87,7 +87,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestFixture
         await RunInScopeAsync(context => new UserRepository(context),
             async sut =>
             {
-                var result = await sut.GetUserByIdAsync(Guid.NewGuid().ToString());
+                var result = await sut.GetByIdAsync(Guid.NewGuid().ToString());
 
                 result.Should().BeNull();
             });
@@ -99,7 +99,7 @@ public class UserRepositoryTests : DatabaseIntegrationTestFixture
         await RunInScopeAsync(context => new UserRepository(context),
             async sut =>
             {
-                var result = await sut.GetUserByIdAsync("invalidId");
+                var result = await sut.GetByIdAsync("invalidId");
 
                 result.Should().BeNull();
             });

@@ -12,7 +12,7 @@ public class DatabaseModelExtensionsTests
     {
         var createTag = new CreateTag("Some description", TagType.MINERAL.ToString());
 
-        var result = createTag.ToDbTag();
+        var result = createTag.ToDbModel();
 
         result.Description.Should().Be(createTag.Description);
         result.TagType.Should().Be(TagType.MINERAL);
@@ -23,7 +23,7 @@ public class DatabaseModelExtensionsTests
     {
         var createTag = new CreateTag("Some description", "ThisShouldThrow");
 
-        var act = () => createTag.ToDbTag();
+        var act = () => createTag.ToDbModel();
 
         act.Should().Throw<ArgumentException>().WithMessage("Invalid tag type: ThisShouldThrow*").WithParameterName("TagType");
     }
@@ -33,7 +33,7 @@ public class DatabaseModelExtensionsTests
     {
         var registerUser = new RegisterUser("someEmail", "somePassword");
 
-        var result = registerUser.ToDbUser();
+        var result = registerUser.ToDbModel();
 
         result.Email.Should().Be(registerUser.Email);
         result.PasswordHash.Should().NotBeNullOrWhiteSpace();

@@ -6,7 +6,7 @@ namespace foodremedy.api.Repositories;
 
 public interface ITagRepository
 {
-    Task<List<Tag>> GetAllAsync();
+    Task<PaginatedResult<Tag>> GetAsync(int skip = 0, int take = 20);
     Tag Add(Tag tag);
     Task SaveChangesAsync();
 }
@@ -20,9 +20,15 @@ public class TagRepository : ITagRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Tag>> GetAllAsync()
+    public async Task<PaginatedResult<Tag>> GetAsync(int skip = 0, int take = 20)
     {
-        return await _dbContext.Tags.ToListAsync();
+        var results = await _dbContext
+            .Tags
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+
+        return new PaginatedResult<Tag>(results.Count, _dbContext.Tags.Count(), results);
     }
 
     public Tag Add(Tag tag)

@@ -16,8 +16,8 @@ public class TagRepositoryTests : DatabaseIntegrationTestFixture
             sut.Add(tag);
             await sut.SaveChangesAsync();
 
-            var result = await sut.GetAllAsync();
-            var inserted = result.SingleOrDefault(p => p.Id == tag.Id);
+            PaginatedResult<Tag> result = await sut.GetAsync();
+            Tag? inserted = result.Results.SingleOrDefault(p => p.Id == tag.Id);
 
             inserted.Should().NotBeNull();
             inserted!.Description.Should().Be(tag.Description);

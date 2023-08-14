@@ -37,4 +37,15 @@ public static class ModelBuilderExtensions
             model.Property(p => p.Description).IsRequired();
         });
     }
+
+    public static void ConfigureIngredients(this ModelBuilder builder)
+    {
+        builder.Entity<Ingredient>(model =>
+        {
+            model.HasKey(p => p.Id);
+            model.Property(p => p.Description).IsRequired();
+            model.HasMany<Tag>(p => p.SeasonTags).WithMany();
+            model.HasMany<Tag>(p => p.ServingSizeTags).WithMany();
+        });
+    }
 }

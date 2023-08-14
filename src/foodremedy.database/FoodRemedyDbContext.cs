@@ -16,6 +16,7 @@ public class FoodRemedyDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Tag> Tags { get; set; }
+    public DbSet<Ingredient> Ingredients { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
@@ -27,5 +28,6 @@ public class FoodRemedyDbContext : DbContext
         builder.ConfigureUsers();
         builder.ConfigureRefreshTokens();
         builder.ConfigureTags();
+        builder.ConfigureIngredients();
     }
 }
