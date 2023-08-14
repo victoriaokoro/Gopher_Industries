@@ -3,7 +3,7 @@ using foodremedy.api.Repositories;
 using foodremedy.api.tests.Utils;
 using foodremedy.database.Models;
 
-namespace foodremedy.api.tests.Providers;
+namespace foodremedy.api.tests.Repositories;
 
 public class UserRepositoryTests : DatabaseIntegrationTestFixture
 {

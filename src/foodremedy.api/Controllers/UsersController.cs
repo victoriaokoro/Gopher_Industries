@@ -1,6 +1,6 @@
-﻿using foodremedy.api.Models.Requests;
+﻿using foodremedy.api.Extensions;
+using foodremedy.api.Models.Requests;
 using foodremedy.api.Repositories;
-using foodremedy.api.Utils;
 using foodremedy.database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,9 +31,7 @@ public class UsersController : ControllerBase
         if (existingUser != null)
             return Conflict();
 
-        string salt = StringHasher.GenerateSalt();
-
-        _userRepository.AddUser(new User(registerUser.Email, StringHasher.Hash(registerUser.Password, salt), salt));
+        _userRepository.AddUser(registerUser.ToDbUser());
         await _userRepository.SaveChangesAsync();
 
         return Ok();

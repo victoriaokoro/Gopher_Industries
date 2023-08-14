@@ -8,7 +8,7 @@ using foodremedy.database.Models;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace foodremedy.api.tests.Providers;
+namespace foodremedy.api.tests.Repositories;
 
 public class AuthenticationProviderTests
 {

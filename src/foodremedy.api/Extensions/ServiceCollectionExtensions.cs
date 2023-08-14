@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddTransient<IUserRepository, UserRepository>();
         serviceCollection.AddTransient<IRefreshTokenRepository, RefreshTokenRepository>();
         serviceCollection.AddTransient<IAuthenticationProvider, AuthenticationProvider>();
+        serviceCollection.AddTransient<ITagRepository, TagRepository>();
     }
 
     public static void AddJwtAuthentication(this IServiceCollection serviceCollection, IConfiguration configuration)

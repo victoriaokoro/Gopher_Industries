@@ -12,15 +12,15 @@ namespace foodremedy.api.Controllers;
 public class IngredientsController : ControllerBase
 {
     [HttpGet]
-    public Task<PaginatedResult<IngredientSummary>> GetIngredientsAsync([FromQuery] int? skip, [FromQuery] int? take)
+    public Task<PaginatedResult<IngredientSummary>> GetIngredients([FromQuery] int? skip, [FromQuery] int? take)
     {
         return Task.FromResult(new PaginatedResult<IngredientSummary>(0, 0, new List<IngredientSummary>()));
     }
 
-    [HttpGet("{ingredientId}")]
+    [HttpGet("{ingredientId:guid}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public Task<Ingredient> GetIngredient([FromRoute] string ingredientId)
+    public Task<Ingredient> GetIngredient([FromRoute] Guid ingredientId)
     {
-        return Task.FromResult(new Ingredient(ingredientId, null!,null!));
+        return Task.FromResult(new Ingredient(ingredientId, string.Empty));
     }
 }

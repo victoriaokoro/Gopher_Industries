@@ -13,8 +13,9 @@ public class FoodRemedyDbContext : DbContext
     }
 
     //TODO: Remove local db testing code
-    public DbSet<User> Users { get; set; } = null!;
-    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<User> Users { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Tag> Tags { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
@@ -23,7 +24,8 @@ public class FoodRemedyDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.ConfigureUser();
-        builder.ConfigureRefreshToken();
+        builder.ConfigureUsers();
+        builder.ConfigureRefreshTokens();
+        builder.ConfigureTags();
     }
 }

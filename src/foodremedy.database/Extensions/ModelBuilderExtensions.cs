@@ -5,7 +5,7 @@ namespace foodremedy.database.Extensions;
 
 public static class ModelBuilderExtensions
 {
-    public static void ConfigureUser(this ModelBuilder builder)
+    public static void ConfigureUsers(this ModelBuilder builder)
     {
         builder.Entity<User>(model =>
         {
@@ -18,13 +18,23 @@ public static class ModelBuilderExtensions
         });
     }
 
-    public static void ConfigureRefreshToken(this ModelBuilder builder)
+    public static void ConfigureRefreshTokens(this ModelBuilder builder)
     {
         builder.Entity<RefreshToken>(model =>
         {
             model.HasKey(p => p.Id);
             model.Property(p => p.Token).IsRequired();
             model.HasIndex(p => p.Token).IsUnique();
+        });
+    }
+
+    public static void ConfigureTags(this ModelBuilder builder)
+    {
+        builder.Entity<Tag>(model =>
+        {
+            model.HasKey(p => p.Id);
+            model.Property(p => p.TagType).IsRequired();
+            model.Property(p => p.Description).IsRequired();
         });
     }
 }

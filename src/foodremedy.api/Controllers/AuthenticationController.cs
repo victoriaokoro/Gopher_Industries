@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using foodremedy.api.Extensions;
 using foodremedy.api.Models.Requests;
 using foodremedy.api.Models.Responses;
 using foodremedy.api.Providers;
@@ -41,7 +42,7 @@ public class AuthenticationController : ControllerBase
 
         JwtSecurityToken accessToken = _authenticationProvider.CreateAccessToken(user);
 
-        return Ok(BuildAccessTokenCreatedResponse(accessToken, refreshToken.Token));
+        return Ok(accessToken.ToResponseModel(refreshToken));
     }
 
     [HttpPost("refresh")]
@@ -56,7 +57,8 @@ public class AuthenticationController : ControllerBase
 
         User? user = await _userRepository.GetUserByIdAsync(userId.Value);
 
-        if (user == null || !await _authenticationProvider.RefreshTokenIsValidAsync(user, refreshAccessToken.RefreshToken))
+        if (user == null ||
+            !await _authenticationProvider.RefreshTokenIsValidAsync(user, refreshAccessToken.RefreshToken))
             return Unauthorized();
 
         RefreshToken refreshToken = await _authenticationProvider.RefreshRefreshTokenAsync(user);
@@ -65,16 +67,6 @@ public class AuthenticationController : ControllerBase
 
         JwtSecurityToken accessToken = _authenticationProvider.CreateAccessToken(user);
 
-        return Ok(BuildAccessTokenCreatedResponse(accessToken, refreshToken.Token));
-    }
-    
-    private static AccessTokenCreated BuildAccessTokenCreatedResponse(JwtSecurityToken accessToken, string refreshToken)
-    {
-        return new AccessTokenCreated(
-            "Bearer",
-            new JwtSecurityTokenHandler().WriteToken(accessToken),
-            (int)(accessToken.ValidTo - DateTime.UtcNow).TotalSeconds,
-            refreshToken
-        );
+        return Ok(accessToken.ToResponseModel(refreshToken));
     }
 }

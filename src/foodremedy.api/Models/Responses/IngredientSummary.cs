@@ -1,3 +1,3 @@
 ﻿namespace foodremedy.api.Models.Responses;
 
-public record IngredientSummary(string Id, Measurement Metadata, NutritionalInformationSummary NutritionalInformation);
+public record IngredientSummary(Guid Id, string Description);
