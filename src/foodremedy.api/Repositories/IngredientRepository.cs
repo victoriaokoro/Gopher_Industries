@@ -24,24 +24,22 @@ public class IngredientRepository : IIngredientRepository
     public async Task<PaginatedResult<Ingredient>> GetAsync(int skip = 0, int take = 20)
     {
         List<Ingredient> result = await _dbContext
-            .Ingredients
-            .Include(p => p.SeasonTags)
-            .Include(p => p.ServingSizeTags)
+            .Ingredient
             .Skip(skip)
             .Take(take)
             .ToListAsync();
 
-        return new PaginatedResult<Ingredient>(result.Count, _dbContext.Ingredients.Count(), result);
+        return new PaginatedResult<Ingredient>(result.Count, _dbContext.Ingredient.Count(), result);
     }
 
     public Ingredient Add(Ingredient ingredient)
     {
-        return _dbContext.Ingredients.Add(ingredient).Entity;
+        return _dbContext.Ingredient.Add(ingredient).Entity;
     }
 
     public async Task<Ingredient?> GetByIdAsync(Guid id)
     {
-        return await _dbContext.Ingredients.SingleOrDefaultAsync(p => p.Id == id);
+        return await _dbContext.Ingredient.SingleOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task SaveChangesAsync()

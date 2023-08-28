@@ -7,12 +7,16 @@ namespace foodremedy.api.tests.Repositories;
 
 public class TagRepositoryTests : DatabaseIntegrationTestFixture
 {
+    private readonly TagCategory _tagCategory = new("TestCategory");
+
     [Fact]
     public async Task Add_should_add_to_db()
     {
-        await RunInScopeAsync(context => new TagRepository(context), async sut =>
+        await RunInScopeAsync(context => new TagRepository(context), async (sut, context) =>
         {
-            var tag = new Tag("Some description", TagType.BENEFIT);
+            var tagCategory = context.TagCategory.Add(_tagCategory).Entity;
+            
+            var tag = new Tag("Some description", tagCategory.Id);
             sut.Add(tag);
             await sut.SaveChangesAsync();
 
@@ -20,8 +24,8 @@ public class TagRepositoryTests : DatabaseIntegrationTestFixture
             Tag? inserted = result.Results.SingleOrDefault(p => p.Id == tag.Id);
 
             inserted.Should().NotBeNull();
-            inserted!.Description.Should().Be(tag.Description);
-            inserted.TagType.Should().Be(tag.TagType);
+            inserted!.Name.Should().Be(tag.Name);
+            inserted.TagCategoryId.Should().Be(tag.TagCategoryId);
         });
     }
 }
