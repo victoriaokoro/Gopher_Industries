@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "google" {
-    credentials = file("sit-23t2-food-remedy-7f9b4c0-1c79cc093068.json")
+    credentials = file("credentials.json")
 
     project = "sit-23t2-food-remedy-7f9b4c0"
     region  = "australia-southeast2"
