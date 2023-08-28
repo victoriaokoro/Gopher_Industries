@@ -21,4 +21,8 @@ This ensures resources managed by Terraform have a consistent state regardless o
 ## Terraform development
 
 * Must have the Terraform CLI installed.
-* Must have a credentials file for the service account locally (**DO NOT COMMIT TO GIT**)
+* Must have a credentials file for the service account in the `/terraform` directory named `credentials.json` (**DO NOT COMMIT TO GIT**)
+* Run `terraform init` to connect to the GCP backend tfstate
+* Make your changes, run `terraform plan` and set your env variable in the command line based on the environment you're developing for
+* If the plan is as expected, run `terraform apply` to deploy your changes
+
