@@ -18,9 +18,3 @@ provider "google" {
   project = "sit-23t2-food-remedy-7f9b4c0"
   region  = "australia-southeast2"
 }
-
-resource "google_storage_bucket" "example" {
-  name     = "foodremedy-api-example"
-  location = "AUSTRALIA-SOUTHEAST2"
-
-}
