@@ -4,7 +4,35 @@ This API serves nutritional information for different foods through HTTP endpoin
 
 Gopher Industries are building this product for an external client "FoodRemedy".
 
+## Contents
+- [Running with Docker](#running-with-docker)
+- [API](#api)
+- [Terraform - GCP](#terraform---gcp)
+
 **This readme is a work in progress**
+
+## Running with Docker
+**Prequisites**
+- Docker
+
+This project is containerised and can therefore be easily ran using Docker.
+
+Run the following commands in your terminal from the root directory of the project.
+
+As we do not currently have a remote image repo, you will have to build the image manually:
+
+```Bash
+docker build -t foodremedy/api:latest .
+```
+
+You can then run a container based off of the newly created image:
+```Bash
+docker run -e ASPNETCORE_ENVIRONMENT=LocalDevelopment -p 5000:80 foodremedy/api:latest
+```
+
+The API can now be reached locally on `http://localhost:5000`.
+
+To confirm it's running, try opening the [documentation page](http://localhost:5000/swagger)
 
 ## API
 ### Authentication Endpoints
