@@ -87,7 +87,7 @@ public class IngredientsControllerTests
     public async Task CreateIngredient_should_save_ingredient_to_db()
     {
         var request = new CreateIngredient("Some description");
-        Ingredient ingredientCallback = null;
+        Ingredient? ingredientCallback = null;
 
         _ingredientRepository
             .Setup(p => p.Add(It.IsAny<Ingredient>()))
@@ -111,7 +111,9 @@ public class IngredientsControllerTests
         
         var response = await _sut.CreateIngredient(request);
         var createdResult = response.Result as CreatedResult;
+        ArgumentNullException.ThrowIfNull(createdResult);
         var objectResult = createdResult.Value as Models.Responses.Ingredient;
+        ArgumentNullException.ThrowIfNull(objectResult);
 
         response.Result.Should().BeOfType<CreatedResult>();
         createdResult.Location.Should().Be($"/ingredients/{objectResult.Id}");

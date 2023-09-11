@@ -6,12 +6,9 @@ namespace foodremedy.api.Extensions;
 
 public static class RequestModelExtensions
 {
-    public static Tag ToDbModel(this CreateTag createTag)
+    public static Tag ToDbModel(this CreateTag createTag, Guid tagCategoryId)
     {
-        if (!Enum.TryParse(createTag.TagType, true, out TagType tagType))
-            throw new ArgumentException($"Invalid tag type: {createTag.TagType}", nameof(createTag.TagType));
-
-        return new Tag(createTag.Description, tagType);
+        return new Tag(createTag.Name, tagCategoryId);
     }
 
     public static User ToDbModel(this RegisterUser registerUser)
@@ -23,5 +20,10 @@ public static class RequestModelExtensions
     public static Ingredient ToDbModel(this CreateIngredient createIngredient)
     {
         return new Ingredient(createIngredient.Description);
+    }
+
+    public static TagCategory ToDbModel(this CreateTagCategory createTagCategory)
+    {
+        return new TagCategory(createTagCategory.Name);
     }
 }

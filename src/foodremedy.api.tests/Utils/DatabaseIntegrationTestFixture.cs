@@ -8,10 +8,15 @@ public abstract class DatabaseIntegrationTestFixture
 {
     protected async Task RunInScopeAsync<TSut>(Func<FoodRemedyDbContext, TSut> systemUnderTestFactory, Func<TSut, Task> inScope)
     {
+        await RunInScopeAsync(systemUnderTestFactory, (sut, _) => inScope(sut));
+    }
+    
+    protected async Task RunInScopeAsync<TSut>(Func<FoodRemedyDbContext, TSut> systemUnderTestFactory, Func<TSut, FoodRemedyDbContext, Task> inScope)
+    {
         await using var context = new TestContext();
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
-        await inScope.Invoke(systemUnderTestFactory.Invoke(context));
+        await inScope.Invoke(systemUnderTestFactory.Invoke(context), context);
     }
 
     internal class TestContext : FoodRemedyDbContext
