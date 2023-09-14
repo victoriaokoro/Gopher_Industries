@@ -30,11 +30,11 @@ public static class ServiceCollectionExtensions
             .Bind(configuration.GetSection(AuthenticationConfiguration.ConfigurationSection))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
+
         var authenticationConfiguration = configuration
             .GetSection(AuthenticationConfiguration.ConfigurationSection)
             .Get<AuthenticationConfiguration>();
-        
+
         serviceCollection.AddAuthentication().AddJwtBearer(conf =>
         {
             conf.TokenValidationParameters = new TokenValidationParameters
@@ -45,6 +45,22 @@ public static class ServiceCollectionExtensions
                 ValidIssuer = authenticationConfiguration.Issuer,
                 IssuerSigningKey = SigningKeyFactory.Get(authenticationConfiguration.SigningKey)
             };
+        });
+    }
+
+    public static void ConfigureCors(this IServiceCollection serviceCollection)
+    {
+        if (!EnvironmentHelper.IsDevelopment()) //TODO: Configure CORS for Production environment
+            return;
+
+        serviceCollection.AddCors(options =>
+        {
+            options.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyHeader();
+                builder.AllowAnyMethod();
+                builder.AllowAnyOrigin();
+            });
         });
     }
 }
