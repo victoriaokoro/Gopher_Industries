@@ -31,7 +31,7 @@ resource "kubernetes_deployment" "foodremedy_ApiDeployment" {
           name  = local.foodremedy_backend_name
           image = "${google_artifact_registry_repository.foodremedy_backend.name}:latest"
           port {
-            name = "http"
+            name           = "http"
             container_port = 80
           }
         }
@@ -52,8 +52,8 @@ resource "kubernetes_service" "foodremedy_ApiService" {
     }
 
     port {
-      name       = "http"
-      port       = 80
+      name        = "http"
+      port        = 80
       target_port = 80
     }
 
@@ -94,7 +94,7 @@ resource "kubernetes_deployment" "foodremedy_DatabaseDeployment" {
           }
 
           port {
-            name = "database"
+            name           = "database"
             container_port = 3306
           }
         }
@@ -115,8 +115,8 @@ resource "kubernetes_service" "foodremedy_DatabaseService" {
     }
 
     port {
-      name       = "db"
-      port       = 3306
+      name        = "db"
+      port        = 3306
       target_port = 3306
     }
   }
@@ -126,7 +126,7 @@ resource "kubernetes_service" "foodremedy_DatabaseService" {
 resource "kubernetes_deployment" "foodremedy_FrontendDeployment" {
   metadata {
     name      = local.foodremedy_frontend_name
-    namespace = kubernetes_namespace.app_namespace.metadata[0].name
+    namespace = kubernetes_namespace.foodremedy_namespace.metadata[0].name
   }
 
   spec {
@@ -148,8 +148,9 @@ resource "kubernetes_deployment" "foodremedy_FrontendDeployment" {
       spec {
         container {
           name  = local.foodremedy_frontend_name
-          image = "${google_artifact_registry_repository.foodremedy_frontend}:latest"
-          ports {
+          image = "${google_artifact_registry_repository.foodremedy_frontend.name}:latest"
+          port {
+            name           = "frontend"
             container_port = 3000
           }
         }
@@ -161,7 +162,7 @@ resource "kubernetes_deployment" "foodremedy_FrontendDeployment" {
 resource "kubernetes_service" "foodremedy_FrontendService" {
   metadata {
     name      = local.foodremedy_frontend_name
-    namespace = kubernetes_namespace.app_namespace.metadata[0].name
+    namespace = kubernetes_namespace.foodremedy_namespace.metadata[0].name
   }
 
   spec {
@@ -170,9 +171,9 @@ resource "kubernetes_service" "foodremedy_FrontendService" {
     }
 
     port {
-      name       = "http"
-      port       = 80
-      targetPort = 80
+      name          = "http"
+      port          = 80
+      target_port = 80
     }
 
     type = "LoadBalancer"
