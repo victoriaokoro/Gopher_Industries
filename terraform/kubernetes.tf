@@ -125,7 +125,7 @@ resource "kubernetes_service" "foodremedy_DatabaseService" {
 
 resource "kubernetes_deployment" "foodremedy_FrontendDeployment" {
   metadata {
-    name      = "${var.env}-app"
+    name      = local.foodremedy_frontend_name
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
 
@@ -134,21 +134,21 @@ resource "kubernetes_deployment" "foodremedy_FrontendDeployment" {
 
     selector {
       match_labels = {
-        app = "${var.env}-app"
+        app = local.foodremedy_frontend_name
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "${var.env}-app"
+          app = local.foodremedy_frontend_name
         }
       }
 
       spec {
         container {
-          name  = "${var.env}-frontend"
-          image = "your-frontend-image:tag"
+          name  = local.foodremedy_frontend_name
+          image = "${google_artifact_registry_repository.foodremedy_frontend}:latest"
           ports {
             container_port = 3000
           }
@@ -160,25 +160,19 @@ resource "kubernetes_deployment" "foodremedy_FrontendDeployment" {
 
 resource "kubernetes_service" "foodremedy_FrontendService" {
   metadata {
-    name      = "${var.env}-app"
+    name      = local.foodremedy_frontend_name
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
 
   spec {
     selector = {
-      app = "${var.env}-app"
+      app = local.foodremedy_frontend_name
     }
 
     port {
       name       = "http"
       port       = 80
       targetPort = 80
-    }
-
-    port {
-      name       = "frontend"
-      port       = 3000
-      targetPort = 3000
     }
 
     type = "LoadBalancer"
