@@ -1,5 +1,5 @@
 variable "env" {
-    default = "dev"
+  default = "dev"
 }
 
 variable "region" {
@@ -11,6 +11,6 @@ variable "project" {
 }
 
 variable "foodremedy_database_root_password" {
-  sensitive = true
+  sensitive   = true
   description = "Must assign value at deployment time. Do not hardcode in Terraform."
 }

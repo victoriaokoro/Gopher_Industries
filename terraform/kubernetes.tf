@@ -171,8 +171,8 @@ resource "kubernetes_service" "foodremedy_FrontendService" {
     }
 
     port {
-      name          = "http"
-      port          = 80
+      name        = "http"
+      port        = 80
       target_port = 80
     }
 
