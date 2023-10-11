@@ -4,6 +4,12 @@ terraform {
       source  = "hashicorp/google"
       version = "4.51.0"
     }
+
+    random = {
+      source = "hashicorp/random"
+      version = "3.5.1"
+    }
+
   }
 
   backend "gcs" {
@@ -21,5 +27,9 @@ provider "google" {
 
 provider "kubernetes" {
 
+}
+
+provider "random" {
+  
 }
 

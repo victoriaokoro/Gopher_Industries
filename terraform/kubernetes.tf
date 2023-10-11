@@ -61,6 +61,11 @@ resource "kubernetes_service" "foodremedy_ApiService" {
   }
 }
 
+resource "random_password" "foodremedu_DatabaseRootPassword" {
+  length           = 16
+  special          = true
+}
+
 resource "kubernetes_deployment" "foodremedy_DatabaseDeployment" {
   metadata {
     name      = local.foodremedy_database_name
@@ -90,7 +95,7 @@ resource "kubernetes_deployment" "foodremedy_DatabaseDeployment" {
 
           env {
             name  = "MYSQL_ROOT_PASSWORD"
-            value = var.foodremedy_database_root_password
+            value = random_password.foodremedu_DatabaseRootPassword.result
           }
 
           port {
