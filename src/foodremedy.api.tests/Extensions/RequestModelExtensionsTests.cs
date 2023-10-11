@@ -10,11 +10,11 @@ public class RequestModelExtensionsTests
     [Fact]
     public void Should_map_between_DbTag_and_ResponseTag()
     {
-        var dbTag = new Tag("Some description", TagType.BENEFIT);
+        var dbTag = new Tag("Some description", Guid.NewGuid());
         var result = dbTag.ToResponseModel();
 
-        result.Description.Should().Be(dbTag.Description);
-        result.TagType.Should().Be(dbTag.TagType.ToString());
+        result.Name.Should().Be(dbTag.Name);
+        result.TagCategoryId.Should().Be(dbTag.TagCategoryId);
     }
 
     [Fact]

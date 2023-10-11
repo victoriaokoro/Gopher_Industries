@@ -21,12 +21,12 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
     public void Add(RefreshToken refreshToken)
     {
-        _dbContext.RefreshTokens.Add(refreshToken);
+        _dbContext.RefreshToken.Add(refreshToken);
     }
 
     public async Task<RefreshToken?> GetByUserAsync(User user)
     {
         ArgumentNullException.ThrowIfNull(user.RefreshTokenId);
-        return await _dbContext.RefreshTokens.SingleOrDefaultAsync(p => p.Id == user.RefreshTokenId);
+        return await _dbContext.RefreshToken.SingleOrDefaultAsync(p => p.Id == user.RefreshTokenId);
     }
 }

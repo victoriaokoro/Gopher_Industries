@@ -33,8 +33,8 @@ public static class ModelBuilderExtensions
         builder.Entity<Tag>(model =>
         {
             model.HasKey(p => p.Id);
-            model.Property(p => p.TagType).IsRequired();
-            model.Property(p => p.Description).IsRequired();
+            model.Property(p => p.Name).IsRequired();
+            model.HasOne<TagCategory>().WithMany();
         });
     }
 
@@ -44,8 +44,17 @@ public static class ModelBuilderExtensions
         {
             model.HasKey(p => p.Id);
             model.Property(p => p.Description).IsRequired();
-            model.HasMany<Tag>(p => p.SeasonTags).WithMany();
-            model.HasMany<Tag>(p => p.ServingSizeTags).WithMany();
+            model.HasMany<Tag>(p => p.Tags).WithMany();
+        });
+    }
+    
+    public static void ConfigureTagCategories(this ModelBuilder builder)
+    {
+        builder.Entity<TagCategory>(model =>
+        {
+            model.HasKey(p => p.Id);
+            model.Property(p => p.Name).IsRequired();
+            model.HasIndex(p => p.Name).IsUnique();
         });
     }
 }

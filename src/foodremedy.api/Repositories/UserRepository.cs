@@ -23,12 +23,12 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _dbContext.Users.SingleOrDefaultAsync(p => p.Email.Equals(email));
+        return await _dbContext.User.SingleOrDefaultAsync(p => p.Email.Equals(email));
     }
 
     public User Add(User user)
     {
-        return _dbContext.Users.Add(user).Entity;
+        return _dbContext.User.Add(user).Entity;
     }
 
     public async Task SaveChangesAsync()
@@ -41,6 +41,6 @@ public class UserRepository : IUserRepository
         if (!Guid.TryParse(userId, out Guid id))
             return null;
 
-        return await _dbContext.Users.SingleOrDefaultAsync(p => p.Id == id);
+        return await _dbContext.User.SingleOrDefaultAsync(p => p.Id == id);
     }
 }

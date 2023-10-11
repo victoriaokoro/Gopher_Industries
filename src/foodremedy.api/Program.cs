@@ -4,6 +4,7 @@ using foodremedy.database.Extensions;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFiles();
+builder.Services.ConfigureCors();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,7 +18,8 @@ WebApplication app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();    TODO: Re-enable when we have HTTPS capability
+app.UseCors();
 app.MapControllers().RequireAuthorization();
 
 app.Run();

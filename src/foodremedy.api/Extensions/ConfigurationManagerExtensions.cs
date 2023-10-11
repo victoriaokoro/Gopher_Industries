@@ -1,4 +1,6 @@
-﻿namespace foodremedy.api.Extensions;
+﻿using foodremedy.api.Utils;
+
+namespace foodremedy.api.Extensions;
 
 public static class ConfigurationManagerExtensions
 {
@@ -7,6 +9,6 @@ public static class ConfigurationManagerExtensions
         configurationManager.AddJsonFile("appsettings.json");
         
         configurationManager.AddJsonFile(
-            $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json");
+            $"appsettings.{EnvironmentHelper.GetEnvironment()}.json");
     }
 }

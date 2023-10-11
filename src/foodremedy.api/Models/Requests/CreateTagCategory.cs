@@ -2,6 +2,6 @@
 
 namespace foodremedy.api.Models.Requests;
 
-public record CreateTag(
+public record CreateTagCategory(
     [Required(AllowEmptyStrings = false)] string Name
 );

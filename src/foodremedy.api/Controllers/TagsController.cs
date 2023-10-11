@@ -16,10 +16,12 @@ namespace foodremedy.api.Controllers;
 public class TagsController : ControllerBase
 {
     private readonly ITagRepository _tagRepository;
+    private readonly ITagCategoryRepository _tagCategoryRepository;
 
-    public TagsController(ITagRepository tagRepository)
+    public TagsController(ITagRepository tagRepository, ITagCategoryRepository tagCategoryRepository)
     {
         _tagRepository = tagRepository;
+        _tagCategoryRepository = tagCategoryRepository;
     }
 
     [HttpGet]
@@ -30,14 +32,19 @@ public class TagsController : ControllerBase
         return Ok(results.ToResponseModel(p => p.ToResponseModel()));
     }
 
-    [HttpPost]
+    [HttpPost("{tagCategoryId:guid}")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Tag>> CreateTag([FromBody] CreateTag createTag)
+    public async Task<ActionResult<Tag>> CreateTag([FromBody] CreateTag createTag, [FromRoute] Guid tagCategoryId)
     {
-        database.Models.Tag result = _tagRepository.Add(createTag.ToDbModel());
-        await _tagRepository.SaveChangesAsync();
+        var tagCategory = await _tagCategoryRepository.GetByIdAsync(tagCategoryId);
 
+        if (tagCategory == null)
+            return NotFound();
+        
+        var result = _tagRepository.Add(createTag.ToDbModel(tagCategory.Id));
+        await _tagRepository.SaveChangesAsync();
+        
         return Created($"/tags/{result.ToResponseModel().Id}", result.ToResponseModel());
     }
 }
