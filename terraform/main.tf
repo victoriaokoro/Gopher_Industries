@@ -4,6 +4,12 @@ terraform {
       source  = "hashicorp/google"
       version = "4.51.0"
     }
+
+    random = {
+      source = "hashicorp/random"
+      version = "3.5.1"
+    }
+
   }
 
   backend "gcs" {
@@ -19,24 +25,11 @@ provider "google" {
   region  = var.region
 }
 
-resource "google_artifact_registry_repository" "foodremedy_backend" {
-  repository_id = "${var.env}-foodremedy-backend"
-  format = "DOCKER"
-  location = var.region
-  project = var.project
+provider "kubernetes" {
+
 }
 
-resource "google_artifact_registry_repository" "foodremedy_database" {
-  repository_id = "${var.env}-foodremedy-database"
-  format = "DOCKER"
-  location = var.region
-  project = var.project
+provider "random" {
+  
 }
 
-
-resource "google_artifact_registry_repository" "foodremedy_frontend" {
-  repository_id = "${var.env}-foodremedy-frontend"
-  format = "DOCKER"
-  location = var.region
-  project = var.project
-}
