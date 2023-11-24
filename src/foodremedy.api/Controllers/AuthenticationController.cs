@@ -8,6 +8,7 @@ using foodremedy.api.Repositories;
 using foodremedy.database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace foodremedy.api.Controllers;
 
@@ -50,7 +51,7 @@ public class AuthenticationController : ControllerBase
     public async Task<ActionResult<AccessTokenCreated>> RefreshAccessToken(
         [FromBody] RefreshAccessToken refreshAccessToken)
     {
-        Claim? userId = User.Claims.SingleOrDefault(p => p.Type.Equals(JwtRegisteredClaimNames.Sub));
+        Claim? userId = User.Claims.SingleOrDefault(p => p.Type.Equals("subject"));
 
         if (userId == null)
             return Unauthorized();

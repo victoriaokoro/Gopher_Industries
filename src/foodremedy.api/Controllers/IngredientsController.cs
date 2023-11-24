@@ -56,6 +56,16 @@ public class IngredientsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Ingredient>> CreateIngredient([FromBody] CreateIngredient createIngredient)
     {
+        database.Models.Ingredient? result;
+
+        if (createIngredient.Tags.IsNullOrEmpty())
+        {
+            result = _ingredientRepository.Add(createIngredient.ToDbModel());
+            await _ingredientRepository.SaveChangesAsync();
+
+            return Created($"/ingredients/{result.ToResponseModel().Id}", result.ToResponseModel());
+        }
+
         var tagCategories = new List<TagCategory>();
 
         foreach (KeyValuePair<string, IEnumerable<string>> tagCategory in createIngredient.Tags!)
@@ -78,11 +88,12 @@ public class IngredientsController : ControllerBase
                     Status = (int)HttpStatusCode.BadRequest,
                     Detail = $"The following tags are invalid: {string.Join(", ", invalidCategories)}"
                 });
-            
+
             tagCategories.Add(dbCategory);
         }
 
-        database.Models.Ingredient result = _ingredientRepository.Add(createIngredient.ToDbModel(tagCategories));
+        result = _ingredientRepository.Add(createIngredient.ToDbModel(tagCategories));
+
         await _ingredientRepository.SaveChangesAsync();
 
         return Created($"/ingredients/{result.ToResponseModel().Id}", result.ToResponseModel());

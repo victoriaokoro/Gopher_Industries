@@ -1,17 +1,15 @@
 using foodremedy.database.Extensions;
 using foodremedy.database.Models;
 using Microsoft.EntityFrameworkCore;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace foodremedy.database;
 
-public class FoodRemedyDbContext : DbContext
+public sealed class FoodRemedyDbContext : DbContext
 {
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    public FoodRemedyDbContext()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    public FoodRemedyDbContext(DbContextOptions<FoodRemedyDbContext> options) : base(options)
     {
-        // ReSharper disable once VirtualMemberCallInConstructor
-        Database.EnsureCreatedAsync().GetAwaiter().GetResult();
+        Database.EnsureCreated();
     }
 
     //TODO: Remove local db testing code
@@ -20,11 +18,6 @@ public class FoodRemedyDbContext : DbContext
     public DbSet<Tag> Tag { get; set; }
     public DbSet<Ingredient> Ingredient { get; set; }
     public DbSet<TagCategory> TagCategory { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder builder)
-    {
-        builder.UseSqlite("Data Source=test.db");
-    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

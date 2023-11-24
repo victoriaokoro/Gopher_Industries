@@ -92,7 +92,8 @@ public class AuthenticationProvider : IAuthenticationProvider
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Iat, issuedAt.ToUnixTimeSeconds().ToString())
+            new(JwtRegisteredClaimNames.Iat, issuedAt.ToUnixTimeSeconds().ToString()),
+            new("subject", user.Id.ToString()),
         };
 
         return claims;

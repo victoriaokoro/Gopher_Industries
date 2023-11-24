@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace foodremedy.database.Extensions;
 
@@ -6,6 +7,6 @@ public static class ServiceCollectionExtensions
 {
     public static void AddDatabase(this IServiceCollection collection)
     {
-        collection.AddDbContext<FoodRemedyDbContext>();
+        collection.AddDbContext<FoodRemedyDbContext>(config => { config.UseSqlite("Filename=test.db"); });
     }
 }

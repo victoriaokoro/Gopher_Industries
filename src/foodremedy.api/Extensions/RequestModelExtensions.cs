@@ -21,33 +21,38 @@ public static class RequestModelExtensions
         return new User(registerUser.Email, StringHasher.Hash(registerUser.Password, salt), salt);
     }
 
-    public static Ingredient ToDbModel(this CreateIngredient createIngredient, List<TagCategory> tagCategories)
+    public static Ingredient ToDbModel(this CreateIngredient createIngredient, List<TagCategory>? tagCategories = null)
     {
-        IEnumerable<Tag>? tags = null;
-
-        if (!createIngredient.Tags.IsNullOrEmpty())
-            foreach (KeyValuePair<string, IEnumerable<string>> tagGroup in createIngredient.Tags!)
+        if (createIngredient.Tags.IsNullOrEmpty() || tagCategories.IsNullOrEmpty())
+            return new Ingredient(createIngredient.Description)
             {
-                TagCategory? category = tagCategories
-                    .SingleOrDefault(p => p.Name.Equals(tagGroup.Key, StringComparison.InvariantCultureIgnoreCase));
+                Tags = Array.Empty<Tag>()
+            };
+        
+        var tags = new List<Tag>();
+        
+        foreach (KeyValuePair<string, IEnumerable<string>> tagGroup in createIngredient.Tags!)
+        {
+            TagCategory? category = tagCategories!
+                .SingleOrDefault(p => p.Name.Equals(tagGroup.Key, StringComparison.InvariantCultureIgnoreCase));
 
-                ArgumentNullException.ThrowIfNull(category);
+            ArgumentNullException.ThrowIfNull(category);
 
-                tags = tagGroup.Value.Select(p =>
-                {
-                    Tag? dbTag = category
-                        .Tags
-                        .SingleOrDefault(q => q.Name.Equals(p, StringComparison.InvariantCultureIgnoreCase));
+            tags.AddRange(tagGroup.Value.Select(p =>
+            {
+                Tag? dbTag = category
+                    .Tags
+                    .SingleOrDefault(q => q.Name.Equals(p, StringComparison.InvariantCultureIgnoreCase));
 
-                    ArgumentNullException.ThrowIfNull(dbTag);
+                ArgumentNullException.ThrowIfNull(dbTag);
 
-                    return dbTag;
-                }).ToList();
-            }
+                return dbTag;
+            }));
+        }
 
         return new Ingredient(createIngredient.Description)
         {
-            Tags = tags ?? Array.Empty<Tag>()
+            Tags = tags
         };
     }
 

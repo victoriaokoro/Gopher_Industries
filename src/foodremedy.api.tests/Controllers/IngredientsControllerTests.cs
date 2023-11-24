@@ -1,122 +1,199 @@
-﻿using FluentAssertions;
-using foodremedy.api.Controllers;
-using foodremedy.api.Extensions;
+﻿using System.Net;
+using System.Net.Http.Json;
+using System.Security.Cryptography;
 using foodremedy.api.Models.Requests;
 using foodremedy.api.Models.Responses;
-using foodremedy.api.Repositories;
-using foodremedy.api.tests.Extensions;
 using foodremedy.database.Models;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
 using Ingredient = foodremedy.database.Models.Ingredient;
+using Tag = foodremedy.database.Models.Tag;
+using TagCategory = foodremedy.database.Models.TagCategory;
 
 namespace foodremedy.api.tests.Controllers;
 
-public class IngredientsControllerTests
+internal sealed class IngredientsControllerTests : ControllerTestFixture
 {
-    private readonly List<Ingredient> _dbIngredients;
-    private readonly Mock<IIngredientRepository> _ingredientRepository = new();
-    private readonly IngredientsController _sut;
-
-    public IngredientsControllerTests()
+    [Test]
+    public async Task GetIngredients_UnauthenticatedRequest_RespondsUnauthorised()
     {
-        _dbIngredients = new List<Ingredient>
+        HttpResponseMessage response = await _webApiClient.GetAsync("ingredients");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task GetIngredients_ValidRequest_RespondsOkWithPayload()
+    {
+        var dbIngredient = DbContext.Ingredient.Add(new Ingredient("Some ingredient"));
+        await DbContext.SaveChangesAsync();
+        
+        var request = new HttpRequestMessage(HttpMethod.Get, "Ingredients");
+        var response = await SendAuthenticatedRequestAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<IngredientSummary>>();
+
+        result.Count.Should().Be(1);
+        result.Total.Should().Be(1);
+        result.Results.Should().ContainSingle();
+        result.Results.First().Id.Should().Be(dbIngredient.Entity.Id);
+        result.Results.First().Description.Should().Be(dbIngredient.Entity.Description);
+    }
+
+    [Test]
+    public async Task GetIngredient_UnauthenticatedRequest_RespondsUnauthorised()
+    {
+        HttpResponseMessage response = await _webApiClient.GetAsync($"ingredients/{Guid.NewGuid()}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task GetIngredient_IngredientDoesNotExist_RespondsNotFound()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"ingredients/{Guid.NewGuid()}");
+        var response = await SendAuthenticatedRequestAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Test]
+    public async Task GetIngredient_ValidRequest_RespondsOkWithPayload()
+    {
+        var tagCategory = DbContext.TagCategory.Add(new TagCategory
         {
-            new("Some ingredient") { Id = Guid.NewGuid() },
-            new("Some other ingredient") { Id = Guid.NewGuid() }
+            Name = "TestCategory",
+        }).Entity;
+        var dbIngredient = DbContext.Ingredient.Add(new Ingredient("SomeIngredient")
+        {
+            Tags = new []
+            {
+                new Tag
+                {
+                    Name = "TestTag",
+                    TagCategory = tagCategory
+                }
+            }
+        }).Entity;
+        await DbContext.SaveChangesAsync();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"ingredients/{dbIngredient.Id}");
+        var response = await SendAuthenticatedRequestAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<foodremedy.api.Models.Responses.Ingredient>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        result.Id.Should().Be(dbIngredient.Id);
+        result.Description.Should().Be(dbIngredient.Description);
+        result.Tags.Should().HaveSameCount(dbIngredient.Tags);
+        result.Tags.First().Key.Should().Be(tagCategory.Name);
+        result.Tags.First().Value.Should().HaveSameCount(dbIngredient.Tags.Where(p => p.TagCategory.Name == tagCategory.Name));
+        result.Tags.First().Value.First().Should().Be(dbIngredient.Tags.First(p => p.TagCategory.Name == tagCategory.Name).Name);
+    }
+
+    [Test]
+    public async Task CreateIngredient_UnauthenticatedRequest_RespondsUnauthorised()
+    {
+        HttpResponseMessage response = await _webApiClient.PostAsync(
+            "ingredients",
+            JsonContent.Create(new CreateIngredient("Test", null))
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task CreateIngredient_WithTagCategoryThatDoesNotExist_RespondsBadRequest()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "ingredients")
+        {
+            Content = JsonContent.Create(new CreateIngredient(
+                "TestIngredient",
+                new Dictionary<string, IEnumerable<string>>
+                {
+                    {"IDontExist", new []{"TestTag"}}
+                }
+            ))
         };
+        var response = await SendAuthenticatedRequestAsync(request);
 
-        _sut = new IngredientsController(_ingredientRepository.Object);
-
-        _ingredientRepository.Setup(p => p.GetAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .ReturnsAsync(new PaginatedResult<Ingredient>(_dbIngredients.Count, _dbIngredients.Count, _dbIngredients));
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    [Fact]
-    public async Task GetIngredients_should_return_ingredients()
+    [Test]
+    public async Task CreateIngredient_WithTagThatDoesNotExist_RespondsBadRequest()
     {
-        ActionResult<PaginatedResponse<IngredientSummary>>
-            response = await _sut.GetIngredients(new PaginationRequest());
-        PaginatedResponse<IngredientSummary>? result = response.Unpack();
-
-        response.Result.Should().BeOfType<OkObjectResult>();
-        result!.Results.Should().HaveSameCount(_dbIngredients);
-        result.Results.Should().Contain(_dbIngredients.Select(p => p.ToSummaryResponseModel()));
-        result.Should().BeOfType<PaginatedResponse<IngredientSummary>>();
-    }
-
-    [Fact]
-    public async Task GetIngredients_should_pass_pagination_paramaters_to_repository()
-    {
-        var paginationRequest = new PaginationRequest(123, 321);
-        await _sut.GetIngredients(paginationRequest);
-
-        _ingredientRepository.Verify(p => p.GetAsync(paginationRequest.Skip, paginationRequest.Take), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetIngredient_should_return_Ingredient_if_found()
-    {
-        var returnIngredient = new Ingredient("Some description") { Id = Guid.NewGuid() };
-
-        _ingredientRepository.Setup(p => p.GetByIdAsync(returnIngredient.Id))
-            .ReturnsAsync(returnIngredient);
-
-        ActionResult<Models.Responses.Ingredient> response = await _sut.GetIngredient(returnIngredient.Id);
-        Models.Responses.Ingredient? result = response.Unpack();
-
-        _ingredientRepository.Verify(p => p.GetByIdAsync(returnIngredient.Id), Times.Once);
-        response.Result.Should().BeOfType<OkObjectResult>();
-        result.Should().BeOfType<Models.Responses.Ingredient>();
-        result!.Id.Should().Be(returnIngredient.Id);
-        result.Description.Should().Be(returnIngredient.Description);
-    }
-
-    [Fact]
-    public async Task GetIngredient_should_return_404_if_not_found()
-    {
-        var queryId = Guid.NewGuid();
-        _ingredientRepository.Setup(p => p.GetByIdAsync(queryId)).ReturnsAsync(null as Ingredient);
-
-        ActionResult<Models.Responses.Ingredient> response = await _sut.GetIngredient(queryId);
-
-        response.Result.Should().BeOfType<NotFoundResult>();
-    }
-
-    [Fact]
-    public async Task CreateIngredient_should_save_ingredient_to_db()
-    {
-        var request = new CreateIngredient("Some description");
-        Ingredient? ingredientCallback = null;
-
-        _ingredientRepository
-            .Setup(p => p.Add(It.IsAny<Ingredient>()))
-            .Callback<Ingredient>(p => ingredientCallback = p)
-            .Returns(request.ToDbModel());
-
-        await _sut.CreateIngredient(request);
+        DbContext.TagCategory.Add(new TagCategory
+        {
+            Name = "TestCategory"
+        });
+        await DbContext.SaveChangesAsync();
         
-        _ingredientRepository.Verify(p => p.Add(It.IsAny<Ingredient>()), Times.Once);
-        ingredientCallback.Should().NotBeNull();
-        ingredientCallback!.Description.Should().Be(request.Description);
+        var request = new HttpRequestMessage(HttpMethod.Post, "ingredients")
+        {
+            Content = JsonContent.Create(new CreateIngredient(
+                "TestIngredient",
+                new Dictionary<string, IEnumerable<string>>
+                {
+                    {"TestCategory", new []{"IDontExist"}}
+                }
+            ))
+        };
+        var response = await SendAuthenticatedRequestAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    [Fact]
-    public async Task CreateIngredient_should_return_Created_response()
+    [Test]
+    public async Task CreateIngredient_ValidRequestWithTags_RespondsCreatedWithPayload()
     {
-        _ingredientRepository.Setup(p => p.Add(It.IsAny<Ingredient>()))
-            .Returns<Ingredient>(p => p);
+        DbContext.TagCategory.Add(new TagCategory
+        {
+            Name = "TestCategory",
+            Tags = new []
+            {
+                new Tag
+                {
+                    Name = "TestTag",
+                }
+            }
+        });
+        await DbContext.SaveChangesAsync();
         
-        var request = new CreateIngredient("Some description");
-        
-        var response = await _sut.CreateIngredient(request);
-        var createdResult = response.Result as CreatedResult;
-        ArgumentNullException.ThrowIfNull(createdResult);
-        var objectResult = createdResult.Value as Models.Responses.Ingredient;
-        ArgumentNullException.ThrowIfNull(objectResult);
+        var request = new HttpRequestMessage(HttpMethod.Post, "ingredients")
+        {
+            Content = JsonContent.Create(new CreateIngredient(
+                "TestIngredient",
+                new Dictionary<string, IEnumerable<string>>
+                {
+                    {"TestCategory", new []{"TestTag"}}
+                }
+            ))
+        };
+        var response = await SendAuthenticatedRequestAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<foodremedy.api.Models.Responses.Ingredient>();
 
-        response.Result.Should().BeOfType<CreatedResult>();
-        createdResult.Location.Should().Be($"/ingredients/{objectResult.Id}");
-        objectResult.Description.Should().Be(request.Description);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        result.Id.Should().NotBeEmpty();
+        result.Description.Should().Be("TestIngredient");
+        result.Tags.Should().ContainSingle();
+        result.Tags.First().Key.Should().Be("TestCategory");
+        result.Tags.First().Value.Should().ContainSingle();
+        result.Tags.First().Value.First().Should().Be("TestTag");
+    }
+
+    [Test]
+    public async Task CreateIngredient_ValidRequestNoTags_RespondsCreatedWithPayload()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "ingredients")
+        {
+            Content = JsonContent.Create(new CreateIngredient(
+                "TestIngredient",
+                null
+            ))
+        };
+        var response = await SendAuthenticatedRequestAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<foodremedy.api.Models.Responses.Ingredient>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        result.Id.Should().NotBeEmpty();
+        result.Description.Should().Be("TestIngredient");
+        result.Tags.Should().BeEmpty();
     }
 }

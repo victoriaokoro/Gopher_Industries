@@ -1,56 +1,39 @@
-﻿using FluentAssertions;
-using foodremedy.api.Controllers;
+﻿using System.Net;
+using System.Net.Http.Json;
 using foodremedy.api.Models.Requests;
-using foodremedy.api.Repositories;
-using foodremedy.api.Utils;
-using foodremedy.database.Models;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
 
 namespace foodremedy.api.tests.Controllers;
 
-public class UsersControllerTests
+internal sealed class UsersControllerTests : ControllerTestFixture
 {
-    private readonly UsersController _sut;
-    private readonly Mock<IUserRepository> _userRepository = new();
-
-    public UsersControllerTests()
+    [Test]
+    public async Task RegisterUser_ValidRequest_ReturnsOk()
     {
-        _sut = new UsersController(_userRepository.Object);
+        var request = new RegisterUser("test@test.com", "password");
+
+        HttpResponseMessage result = await _webApiClient.PostAsync(
+            "users/register",
+            JsonContent.Create(request)
+        );
+
+        result.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    [Fact]
-    public async Task RegisterUser_should_return_OkObjectResult()
+    [Test]
+    public async Task RegisterUser_CreatingUserWithDuplicateEmail_ReturnsConflict()
     {
-        IActionResult response = await _sut.RegisterUser(new RegisterUser("", ""));
-        response.Should().BeOfType<OkResult>();
-    }
+        var request = new RegisterUser("test@test.com", "password");
 
-    [Fact]
-    public async Task RegisterUser_should_respond_conflict_if_user_with_email_exists()
-    {
-        var user = new User("testEmail", "", "");
-        _userRepository.Setup(p => p.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+        HttpResponseMessage initialResult = await _webApiClient.PostAsync(
+            "users/register",
+            JsonContent.Create(request)
+        );
+        HttpResponseMessage invalidResult = await _webApiClient.PostAsync(
+            "users/register",
+            JsonContent.Create(request)
+        );
 
-        IActionResult response = await _sut.RegisterUser(new RegisterUser(user.Email, ""));
-
-        response.Should().BeOfType<ConflictResult>();
-    }
-
-    [Fact]
-    public async Task RegisterUser_should_add_new_user_to_UserRepository()
-    {
-        var request = new RegisterUser("someEmail", "somePassword");
-        User? userCallback = null;
-        _userRepository
-            .Setup(p => p.Add(It.Is<User>(q => q.Email.Equals(request.Email))))
-            .Callback<User>(p => userCallback = p);
-
-        await _sut.RegisterUser(request);
-
-        userCallback.Should().NotBeNull();
-        userCallback!.Email.Should().Be(request.Email);
-        userCallback.PasswordHash.Should().Be(StringHasher.Hash(request.Password, userCallback.PasswordSalt));
-        userCallback.RefreshTokenId.Should().BeNull();
+        initialResult.StatusCode.Should().Be(HttpStatusCode.OK);
+        invalidResult.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 }

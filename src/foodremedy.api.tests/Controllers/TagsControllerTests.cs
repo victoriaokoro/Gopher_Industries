@@ -1,118 +1,93 @@
-﻿using FluentAssertions;
-using foodremedy.api.Controllers;
-using foodremedy.api.Extensions;
+﻿using System.Net;
+using System.Net.Http.Json;
 using foodremedy.api.Models.Requests;
 using foodremedy.api.Models.Responses;
-using foodremedy.api.Repositories;
-using foodremedy.api.tests.Extensions;
-using foodremedy.database.Models;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
 using Tag = foodremedy.database.Models.Tag;
 using TagCategory = foodremedy.database.Models.TagCategory;
 
 namespace foodremedy.api.tests.Controllers;
 
-public class TagsControllerTests
+internal sealed class TagsControllerTests : ControllerTestFixture
 {
-    private readonly List<Tag> _dbTags;
-    private readonly TagsController _sut;
-    private readonly Mock<ITagRepository> _tagRepository = new();
-    private readonly Mock<ITagCategoryRepository> _tagCategoryRepository = new();
-    private readonly TagCategory _testCategory;
-
-    public TagsControllerTests()
+    [Test]
+    public async Task Get_UnauthenticatedRequest_RespondsUnauthorized()
     {
-        _testCategory = new TagCategory("Category") { Id = Guid.NewGuid()};
-        _dbTags = new List<Tag>
+        HttpResponseMessage response = await _webApiClient.GetAsync("tags");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task Get_ValidRequest_RespondsOkWithPayload()
+    {
+        var category = DbContext.TagCategory.Add(new TagCategory
         {
-            new("tag1", Guid.NewGuid()) { Id = Guid.NewGuid() },
-            new("tag2", Guid.NewGuid()) { Id = Guid.NewGuid() }
+            Name = "TestCategory",
+            Tags = new []
+            {
+                new Tag
+                {
+                    Name = "TestTag",
+                }
+            }
+        });
+        await DbContext.SaveChangesAsync();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "tags");
+        var response = await SendAuthenticatedRequestAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponse<foodremedy.api.Models.Responses.Tag>>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        result.Count.Should().Be(1);
+        result.Total.Should().Be(1);
+        result.Results.Should().ContainSingle();
+        result.Results.First().Id.Should().Be(category.Entity.Tags.First().Id);
+        result.Results.First().Name.Should().Be(category.Entity.Tags.First().Name);
+        result.Results.First().TagCategory.Should().Be(category.Entity.Name);
+    }
+
+    [Test]
+    public async Task CreateTag_UnauthenticatedRequest_RespondsUnauthorized()
+    {
+        HttpResponseMessage response = await _webApiClient.PostAsync(
+            $"tags/{Guid.NewGuid()}",
+            JsonContent.Create(new CreateTag("TagName"))
+        );
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task CreateTag_CategoryDoesNotExist_RespondsNotFound()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, $"tags/{Guid.NewGuid()}")
+        {
+            Content = JsonContent.Create(new CreateTag("SomeTag"))
         };
+        var response = await SendAuthenticatedRequestAsync(request);
 
-        _sut = new TagsController(_tagRepository.Object, _tagCategoryRepository.Object);
-
-        _tagRepository
-            .Setup(p => p.GetAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .ReturnsAsync(new PaginatedResult<Tag>(_dbTags.Count, _dbTags.Count, _dbTags));
-        _tagRepository
-            .Setup(p => p.Add(It.IsAny<Tag>()))
-            .Returns<Tag>(p => new Tag(p.Name, p.TagCategory) { Id = p.Id });
-        
-        _tagCategoryRepository
-            .Setup(p => p.GetByIdAsync(_testCategory.Id))
-            .ReturnsAsync(_testCategory);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    [Fact]
-    public async Task Get_should_return_tags()
+    [Test]
+    public async Task CreateTag_ValidRequest_RespondsCreatedWithPayload()
     {
-        ActionResult<PaginatedResponse<Models.Responses.Tag>> response = await _sut.Get(new PaginationRequest());
-        PaginatedResponse<Models.Responses.Tag>? result = response.Unpack();
+        var category = DbContext.TagCategory.Add(new TagCategory
+        {
+            Name = "TestCategory"
+        });
+        await DbContext.SaveChangesAsync();
 
-        response.Result.Should().BeOfType<OkObjectResult>();
-        result!.Results.Should().HaveSameCount(_dbTags);
-        result.Results.Should().Contain(_dbTags.Select(p => p.ToResponseModel()));
-    }
+        var request = new HttpRequestMessage(HttpMethod.Post, $"tags/{category.Entity.Id}")
+        {
+            Content = JsonContent.Create(new CreateTag("TestTag"))
+        };
+        var response = await SendAuthenticatedRequestAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<foodremedy.api.Models.Responses.Tag>();
 
-    [Fact]
-    public async Task Get_should_pass_pagination_params_to_repository()
-    {
-        var paginationRequest = new PaginationRequest(123, 321);
-        await _sut.Get(paginationRequest);
-
-        _tagRepository.Verify(p => p.GetAsync(paginationRequest.Skip, paginationRequest.Take), Times.Once);
-    }
-
-    [Fact]
-    public async Task CreateTag_should_save_tag_to_repository()
-    {
-        var request = new CreateTag("Some description");
-        Tag? tagCallback = null;
-        _tagRepository
-            .Setup(p => p.Add(It.IsAny<Tag>()))
-            .Callback<Tag>(q => tagCallback = q)
-            .Returns(request.ToDbModel(_testCategory.Id));
-
-        await _sut.CreateTag(request, _testCategory.Id);
-
-        _tagRepository.Verify(p => p.Add(It.IsAny<Tag>()), Times.Once);
-        tagCallback.Should().NotBeNull();
-        tagCallback!.TagCategory.Should().Be(_testCategory.Id);
-        tagCallback!.Name.Should().Be(request.Name);
-    }
-
-    [Fact]
-    public async Task CreateTag_should_return_Created_response()
-    {
-        var request = new CreateTag("Some description");
-        _tagRepository
-            .Setup(p => p.Add(It.IsAny<Tag>()))
-            .Returns(request.ToDbModel(_testCategory.Id));
-
-        ActionResult<Models.Responses.Tag> response = await _sut.CreateTag(request, _testCategory.Id);
-        var createdResult = response.Result as CreatedResult;
-        var objectResult = createdResult?.Value as Models.Responses.Tag;
-        
-        _tagRepository.Verify(p => p.SaveChangesAsync(), Times.Once);
-
-        createdResult.Should().NotBeNull();
-        objectResult.Should().NotBeNull();
-        createdResult!.Location.Should().Be($"/tags/{objectResult!.Id}");
-        objectResult.TagCategory.Should().Be(_testCategory.Id);
-        objectResult.Name.Should().Be(request.Name);
-    }
-
-    [Fact]
-    public async Task CreateTag_should_return_NotFound_if_category_does_not_exist()
-    {
-        var tagCategoryId = Guid.NewGuid();
-        _tagCategoryRepository
-            .Setup(p => p.GetByIdAsync(tagCategoryId))
-            .ReturnsAsync(null as TagCategory);
-
-        var result = await _sut.CreateTag(new CreateTag("SomeTag"), tagCategoryId);
-
-        result.Result.Should().BeOfType<NotFoundResult>();
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        result.Id.Should().NotBeEmpty();
+        result.Name.Should().Be("TestTag");
+        result.TagCategory.Should().Be(category.Entity.Name);
     }
 }
