@@ -25,7 +25,7 @@ public class TagRepositoryTests : DatabaseIntegrationTestFixture
 
             inserted.Should().NotBeNull();
             inserted!.Name.Should().Be(tag.Name);
-            inserted.TagCategoryId.Should().Be(tag.TagCategoryId);
+            inserted.TagCategory.Should().Be(tag.TagCategory);
         });
     }
 }

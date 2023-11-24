@@ -14,7 +14,7 @@ public class RequestModelExtensionsTests
         var result = dbTag.ToResponseModel();
 
         result.Name.Should().Be(dbTag.Name);
-        result.TagCategoryId.Should().Be(dbTag.TagCategoryId);
+        result.TagCategory.Should().Be(dbTag.TagCategory);
     }
 
     [Fact]

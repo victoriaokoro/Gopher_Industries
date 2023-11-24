@@ -10,5 +10,5 @@ public class Ingredient
 
     public Guid Id { get; init; }
     public string Description { get; set; }
-    public List<Tag> Tags { get; set; }
+    public IEnumerable<Tag> Tags { get; set; }
 }

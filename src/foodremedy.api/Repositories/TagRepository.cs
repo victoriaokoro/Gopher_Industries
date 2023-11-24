@@ -24,6 +24,7 @@ public class TagRepository : ITagRepository
     {
         var results = await _dbContext
             .Tag
+            .Include(p => p.TagCategory)
             .Skip(skip)
             .Take(take)
             .ToListAsync();

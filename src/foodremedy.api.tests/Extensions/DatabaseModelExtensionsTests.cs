@@ -15,7 +15,7 @@ public class DatabaseModelExtensionsTests
         var result = createTag.ToDbModel(tagCategoryId);
 
         result.Name.Should().Be(createTag.Name);
-        result.TagCategoryId.Should().Be(tagCategoryId);
+        result.TagCategory.Should().Be(tagCategoryId);
     }
 
     [Fact]

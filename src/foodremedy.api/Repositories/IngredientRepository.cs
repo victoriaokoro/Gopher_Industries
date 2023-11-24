@@ -39,7 +39,11 @@ public class IngredientRepository : IIngredientRepository
 
     public async Task<Ingredient?> GetByIdAsync(Guid id)
     {
-        return await _dbContext.Ingredient.SingleOrDefaultAsync(p => p.Id == id);
+        return await _dbContext
+            .Ingredient
+            .Include(p => p.Tags)
+            .ThenInclude(p => p.TagCategory)
+            .SingleOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task SaveChangesAsync()

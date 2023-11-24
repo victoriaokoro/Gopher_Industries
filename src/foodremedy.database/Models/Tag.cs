@@ -1,6 +1,8 @@
 ﻿namespace foodremedy.database.Models;
 
-public record Tag(string Name, Guid TagCategoryId)
+public class Tag
 {
     public Guid Id { get; init; }
+    public string Name { get; init; }
+    public TagCategory TagCategory { get; init; }
 }

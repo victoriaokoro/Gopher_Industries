@@ -34,7 +34,6 @@ public static class ModelBuilderExtensions
         {
             model.HasKey(p => p.Id);
             model.Property(p => p.Name).IsRequired();
-            model.HasOne<TagCategory>().WithMany();
         });
     }
 
@@ -55,6 +54,11 @@ public static class ModelBuilderExtensions
             model.HasKey(p => p.Id);
             model.Property(p => p.Name).IsRequired();
             model.HasIndex(p => p.Name).IsUnique();
+            model
+                .HasMany(p => p.Tags)
+                .WithOne(p => p.TagCategory)
+                .HasForeignKey("TagCategoryId")
+                .IsRequired();
         });
     }
 }

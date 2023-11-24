@@ -11,7 +11,7 @@ public static class DatabaseModelExtensions
 {
     public static Tag ToResponseModel(this database.Models.Tag tag)
     {
-        return new Tag(tag.Id, tag.Name, tag.TagCategoryId);
+        return new Tag(tag.Id, tag.Name, tag.TagCategory.Name);
     }
 
     public static AccessTokenCreated ToResponseModel(this JwtSecurityToken accessToken, RefreshToken refreshToken)
@@ -31,7 +31,18 @@ public static class DatabaseModelExtensions
 
     public static Models.Responses.Ingredient ToResponseModel(this Ingredient ingredient)
     {
-        return new Models.Responses.Ingredient(ingredient.Id, ingredient.Description);
+        var tags = ingredient.Tags.GroupBy(p => p.TagCategory);
+        var tagDictionary = new Dictionary<string, IEnumerable<string>>();
+
+        foreach (var grouping in tags)
+        {
+            tagDictionary.Add(grouping.Key.Name, grouping.Select(p => p.Name).ToList());
+        }
+        
+        return new Models.Responses.Ingredient(
+            ingredient.Id, 
+            ingredient.Description,
+            tagDictionary);
     }
 
     public static PaginatedResponse<TResponse> ToResponseModel<TResponse, TDbModel>(

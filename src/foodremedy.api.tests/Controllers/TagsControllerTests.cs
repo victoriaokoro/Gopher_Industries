@@ -37,7 +37,7 @@ public class TagsControllerTests
             .ReturnsAsync(new PaginatedResult<Tag>(_dbTags.Count, _dbTags.Count, _dbTags));
         _tagRepository
             .Setup(p => p.Add(It.IsAny<Tag>()))
-            .Returns<Tag>(p => new Tag(p.Name, p.TagCategoryId) { Id = p.Id });
+            .Returns<Tag>(p => new Tag(p.Name, p.TagCategory) { Id = p.Id });
         
         _tagCategoryRepository
             .Setup(p => p.GetByIdAsync(_testCategory.Id))
@@ -78,7 +78,7 @@ public class TagsControllerTests
 
         _tagRepository.Verify(p => p.Add(It.IsAny<Tag>()), Times.Once);
         tagCallback.Should().NotBeNull();
-        tagCallback!.TagCategoryId.Should().Be(_testCategory.Id);
+        tagCallback!.TagCategory.Should().Be(_testCategory.Id);
         tagCallback!.Name.Should().Be(request.Name);
     }
 
@@ -99,7 +99,7 @@ public class TagsControllerTests
         createdResult.Should().NotBeNull();
         objectResult.Should().NotBeNull();
         createdResult!.Location.Should().Be($"/tags/{objectResult!.Id}");
-        objectResult.TagCategoryId.Should().Be(_testCategory.Id);
+        objectResult.TagCategory.Should().Be(_testCategory.Id);
         objectResult.Name.Should().Be(request.Name);
     }
 

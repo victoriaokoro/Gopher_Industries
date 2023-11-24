@@ -42,7 +42,7 @@ public class TagsController : ControllerBase
         if (tagCategory == null)
             return NotFound();
         
-        var result = _tagRepository.Add(createTag.ToDbModel(tagCategory.Id));
+        var result = _tagRepository.Add(createTag.ToDbModel(tagCategory));
         await _tagRepository.SaveChangesAsync();
         
         return Created($"/tags/{result.ToResponseModel().Id}", result.ToResponseModel());

@@ -10,6 +10,7 @@ public interface ITagCategoryRepository
     TagCategory Add(TagCategory tagCategory);
     Task<TagCategory?> GetByIdAsync(Guid id);
     Task SaveChangesAsync();
+    Task<TagCategory?> GetByName(string name);
 }
 
 public class TagCategoryRepository : ITagCategoryRepository
@@ -45,5 +46,13 @@ public class TagCategoryRepository : ITagCategoryRepository
     public async Task SaveChangesAsync()
     {
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<TagCategory?> GetByName(string name)
+    {
+        return await _dbContext
+            .TagCategory
+            .Include(p => p.Tags)
+            .SingleOrDefaultAsync(p => p.Name.Equals(name));
     }
 }
