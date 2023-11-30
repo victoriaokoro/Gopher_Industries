@@ -9,6 +9,7 @@ using foodremedy.database.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
+using User = foodremedy.database.Models.User;
 
 namespace foodremedy.api.Controllers;
 

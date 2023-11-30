@@ -37,4 +37,12 @@ public class UsersController : ControllerBase
 
         return Ok();
     }
+
+    [HttpGet]
+    public async Task<ActionResult<Models.Responses.PaginatedResponse<User>>> GetUsers([FromQuery] PaginationRequest paginationRequest)
+    {
+        var results = await _userRepository.GetAsync(paginationRequest.Skip, paginationRequest.Take);
+
+        return Ok(results.ToResponseModel(p => p.ToResponseModel()));
+    }
 }

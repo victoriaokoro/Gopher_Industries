@@ -4,6 +4,7 @@ using foodremedy.database.Models;
 using Ingredient = foodremedy.database.Models.Ingredient;
 using Tag = foodremedy.api.Models.Responses.Tag;
 using TagCategory = foodremedy.api.Models.Responses.TagCategory;
+using User = foodremedy.database.Models.User;
 
 namespace foodremedy.api.Extensions;
 
@@ -55,5 +56,13 @@ public static class DatabaseModelExtensions
     public static TagCategory ToResponseModel(this database.Models.TagCategory tagCategory)
     {
         return new TagCategory(tagCategory.Id, tagCategory.Name);
+    }
+
+    public static Models.Responses.User ToResponseModel(this User user)
+    {
+        return new Models.Responses.User(
+            user.Id,
+            user.Email
+        );
     }
 }
