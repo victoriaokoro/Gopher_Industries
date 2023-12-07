@@ -38,11 +38,22 @@ public class UsersController : ControllerBase
         return Ok();
     }
 
-    [HttpGet]
+    [AllowAnonymous]
+    [HttpGet("fetchUsers")]
     public async Task<ActionResult<Models.Responses.PaginatedResponse<User>>> GetUsers([FromQuery] PaginationRequest paginationRequest)
     {
         var results = await _userRepository.GetAsync(paginationRequest.Skip, paginationRequest.Take);
 
         return Ok(results.ToResponseModel(p => p.ToResponseModel()));
     }
+
+    [AllowAnonymous]
+    [HttpGet("fetchUser")]
+    public async Task<IActionResult> GetUser([FromQuery] string UserId)
+    {
+        var results = await _userRepository.GetByIdAsync(UserId);
+
+        return Ok(results);
+    }
+
 }
