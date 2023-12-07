@@ -38,8 +38,7 @@ public class UsersController : ControllerBase
         return Ok();
     }
 
-    [AllowAnonymous]
-    [HttpGet("fetchUsers")]
+    [HttpGet]
     public async Task<ActionResult<Models.Responses.PaginatedResponse<User>>> GetUsers([FromQuery] PaginationRequest paginationRequest)
     {
         var results = await _userRepository.GetAsync(paginationRequest.Skip, paginationRequest.Take);
@@ -47,13 +46,17 @@ public class UsersController : ControllerBase
         return Ok(results.ToResponseModel(p => p.ToResponseModel()));
     }
 
-    [AllowAnonymous]
-    [HttpGet("fetchUser")]
-    public async Task<IActionResult> GetUser([FromQuery] string UserId)
+    [HttpGet("{userId:guid}")]
+    public async Task<ActionResult<Models.Responses.User>> GetUser([FromRoute] Guid UserId)
     {
-        var results = await _userRepository.GetByIdAsync(UserId);
+        var results = await _userRepository.GetByIdAsync(UserId.ToString());
 
-        return Ok(results);
+        if(results == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(results.ToResponseModel());
     }
 
 }
