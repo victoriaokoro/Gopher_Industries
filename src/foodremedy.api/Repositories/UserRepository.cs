@@ -11,6 +11,7 @@ public interface IUserRepository
     Task SaveChangesAsync();
     Task<User?> GetByIdAsync(string userId);
     Task<PaginatedResult<User>> GetAsync(int skip = 0, int take = 20);
+    Task<User?> GetByIdAsync(Guid userId);
 }
 
 public class UserRepository : IUserRepository
@@ -43,6 +44,11 @@ public class UserRepository : IUserRepository
             return null;
 
         return await _dbContext.User.SingleOrDefaultAsync(p => p.Id == id);
+    }
+    
+    public async Task<User?> GetByIdAsync(Guid userId)
+    {
+        return await _dbContext.User.SingleOrDefaultAsync(p => p.Id == userId);
     }
 
     public async Task<PaginatedResult<User>> GetAsync(int skip = 0, int take = 20)

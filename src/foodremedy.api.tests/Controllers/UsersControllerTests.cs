@@ -60,4 +60,29 @@ internal sealed class UsersControllerTests : ControllerTestFixture
             .Contain(p => p.Email == user1.Email && p.Id == user1Saved.Id).
             And.Contain(p => p.Email == user2.Email && p.Id == user2Saved.Id);
     }
+
+    [Test]
+    public async Task GetUser_ValidRequest_ReturnsOkWithPayload()
+    {
+        var userSaved = DbContext.User.Add(new User("test@email.com", "passHash", "passSalt")).Entity;
+        await DbContext.SaveChangesAsync();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/users/{userSaved.Id}");
+        var response = await SendAuthenticatedRequestAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<Models.Responses.User>();
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        result.Should().NotBeNull();
+        result!.Email.Should().Be(userSaved.Email);
+        result.Id.Should().Be(userSaved.Id);
+    }
+
+    [Test]
+    public async Task GetUser_UserIdDoesNotExist_ReturnsNotFound()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/users/{Guid.NewGuid()}");
+        var response = await SendAuthenticatedRequestAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
 }

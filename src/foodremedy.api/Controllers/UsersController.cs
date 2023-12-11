@@ -49,14 +49,11 @@ public class UsersController : ControllerBase
     [HttpGet("{userId:guid}")]
     public async Task<ActionResult<Models.Responses.User>> GetUser([FromRoute] Guid UserId)
     {
-        var results = await _userRepository.GetByIdAsync(UserId.ToString());
+        var result = await _userRepository.GetByIdAsync(UserId);
 
-        if(results == null)
-        {
+        if(result == null)
             return NotFound();
-        }
 
-        return Ok(results.ToResponseModel());
+        return Ok(result.ToResponseModel());
     }
-
 }
