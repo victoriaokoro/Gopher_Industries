@@ -7,7 +7,7 @@ builder.Configuration.AddJsonFiles();
 builder.Services.ConfigureCors();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => options.CustomSchemaIds(t => t.FullName));
 builder.Services.UseLowercaseUrls();
 builder.Services.AddDatabase();
 builder.Services.AddJwtAuthentication(builder.Configuration);
